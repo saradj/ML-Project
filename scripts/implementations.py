@@ -1,8 +1,5 @@
 import numpy as np
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma):
-    raise NotImplementedError
-
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
     err = y - tx.dot(w)

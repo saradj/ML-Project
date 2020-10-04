@@ -63,8 +63,8 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     """Logistic regression using stochastic gradient descent """
     w = initial_w
     for n_iter in range(max_iters) : 
-        grad = logistic_gradient(y, tx, w)
-        loss = logistic_loss(y, tx, w)
+        grad = compute_logistic_gradient(y, tx, w)
+        loss = compute_logistic_loss(y, tx, w)
         w = w - gamma * grad       
     return w, loss 
 
@@ -82,5 +82,10 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             w: the optimized weights vector for this model
             loss: the final optimized logistic loss
         """
-    raise NotImplementedError
+    w = initial_w
+    for i in range(max_iters):
+        gradient = compute_logistic_gradient(y, tx, w) + 2 * lambda_ * w
+        loss = compute_logistic_loss(y, tx, w) + (lambda_ / 2) * w.T.dot(w)
+        w = w - gamma * gradient
+    return w, loss
 

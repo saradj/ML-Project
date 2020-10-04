@@ -1,83 +1,75 @@
-{
- "cells": [
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# Logistic Regression"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "def logistic_regression(y, tx, initial_w, max_iters, gamma) : \n",
-    "    \n",
-    "    raise NotImplementedError \n"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# Least squares sgd"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 5,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "def compute_stoch_gradient(y, tx, w):\n",
-    "    \"\"\"Compute a stochastic gradient from just few examples n and their corresponding y_n labels.\"\"\"\n",
-    "    err = y - tx.dot(w)\n",
-    "    grad = - tx.T.dot(err) / len(err)\n",
-    "    return grad, err"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 6,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "def least_squares_SGD(y, tx, initial_w, max_iters, gamma):\n",
-    "    \"\"\"Stochastic gradient descent algorithm.\"\"\"\n",
-    "    w = initial_w\n",
-    "    batch_size=1                      #default value as indicated in project description\n",
-    "    for n_iter in range(max_iters):\n",
-    "        for y_batch, tx_batch in batch_iter(y, tx, batch_size, num_batches=1):\n",
-    "\n",
-    "            grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)\n",
-    "            w = w - gamma*grad\n",
-    "            loss = compute_loss(y, tx, w) \n",
-    "\n",
-    "    return w, loss "
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.7.6"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 4
-}
+import numpy as np
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    raise NotImplementedError
+
+def compute_stoch_gradient(y, tx, w):
+    """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
+    err = y - tx.dot(w)
+    grad = - tx.T.dot(err) / len(err)
+    return grad, err
+
+def get_mse_loss(y, tx, w):
+    """Calculates the mse loss."""
+    predicted = tx.dot(w)
+    err = y - pred
+    return 1/2 * np.mean(err ** 2)
+
+def sigmoid(x):
+    """Computes the sigmoid of x."""
+    return 1.0 / (1 + np.exp(-x))
+
+
+def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+    raise NotImplementedError
+
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
+    """Stochastic gradient descent algorithm."""
+    w = initial_w
+    batch_size = 1  # default value as indicated in project description
+    for n_iter in range(max_iters):
+        for y_batch, tx_batch in batch_iter(y, tx, batch_size, num_batches=1):
+            grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)
+            w = w - gamma * grad
+            loss = compute_loss(y, tx, w)
+    return w, loss
+
+def least_squares(y, tx):
+    """
+    Least squares regression using normal equations
+    Arguments:
+        y: target labels
+        tx: data features
+    Return:
+        w: the optimized weights vector for this model
+        loss: the final MSE loss of the model
+    """
+    matrix = tx.T.dot(tx)
+    vector = tx.T.dot(y)
+    w = np.linalg.solve(matrix, vector)
+    loss = get_mse_loss(y, tx, w)
+    return w, loss
+
+def ridge_regression(y, tx, lambda_):
+    raise NotImplementedError
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    raise NotImplementedError
+
+
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    """
+        Regularized logistic regression using gradient descent
+        Arguments:
+            y: target labels
+            tx: data features
+            lambda_: regularization parameter
+            initial_w: w_0, initial weight vector
+            max_iters: maximum iterations to run
+            gamma: the learning rate or step size
+        Returns:
+            w: the optimized weights vector for this model
+            loss: the final optimized logistic loss
+        """
+    raise NotImplementedError
+

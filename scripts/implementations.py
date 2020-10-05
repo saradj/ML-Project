@@ -1,4 +1,19 @@
 import numpy as np
+from proj1_helpers import batch_iter
+
+
+def compute_gradient(y, tx, w):
+    """Compute the gradient.
+	Parameters:
+		y: target lables; an array of shape (N,1). N: Number of datapoints.
+		tx: datapoint features; an array of shape (N,D+1). N: number of datapoints, D: number of features.  
+		w: current weights.
+	Returns:
+		the gradient of the MSE loss function using w as weights.
+	""" 
+    N = len(y)
+    e = y-tx.dot(w) #np.matmul(tx, w)
+    return (tx.T.dot(e))/-N
 
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
@@ -8,7 +23,7 @@ def compute_stoch_gradient(y, tx, w):
 
 def get_mse_loss(y, tx, w):
     """Calculates the mse loss."""
-    predicted = tx.dot(w)
+    pred = tx.dot(w)
     err = y - pred
     return 1/2 * np.mean(err ** 2)
 
@@ -18,7 +33,26 @@ def sigmoid(x):
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
-    raise NotImplementedError
+	"""Gradient descent algorithm.
+	Parameters:
+		y: target lables; an array of shape (N,1). N: Number of datapoints.
+		tx: datapoint features; an array of shape (N,D+1). N: number of datapoints, D: number of features.  
+		initial_w: initial weights.
+		max_ietrs: number of iterations.
+		gamma: learning rate.
+	Returns: 
+		w: optimized weights.
+		loss: final loss.
+	
+	"""
+	w = initial_w
+	loss = 0
+	w = initial_w
+	for n_iter in range(max_iters):
+		loss = get_mse_loss(y, tx, w)
+		grad = compute_gradient(y, tx, w) 
+		w = w - gamma * grad
+	return loss, w
 
 def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     """Stochastic gradient descent algorithm."""
@@ -28,7 +62,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
         for y_batch, tx_batch in batch_iter(y, tx, batch_size, num_batches=1):
             grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)
             w = w - gamma * grad
-            loss = compute_loss(y, tx, w)
+            loss = get_mse_loss(y, tx, w)
     return w, loss
 
 def least_squares(y, tx):
@@ -48,7 +82,19 @@ def least_squares(y, tx):
     return w, loss
 
 def ridge_regression(y, tx, lambda_):
-    raise NotImplementedError
+	"""
+	Ridge regression using normal equations.
+	Parameters:
+		y: target lables; an array of shape (N,1). N: Number of datapoints. 
+		tx: datapoint features; an array of shape (N,D+1). N: number of datapoints, D: number of features.
+		lambda_: the hyperparametrs used to balance the tradeoff between model complexity and cost.
+	Returns:
+		w: optimized weights.
+	"""
+	lambda_ = lambda_ * 2 * len(y)
+	M = tx.T.dot(tx)
+	w = np.linalg.solve(M + lambda_*np.identity(M.shape[0]), tx.T.dot(y))
+	return w
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     raise NotImplementedError

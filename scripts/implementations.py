@@ -31,6 +31,15 @@ def sigmoid(x):
     """Computes the sigmoid of x."""
     return 1.0 / (1 + np.exp(-x))
 
+def compute_logistic_gradient(y, tx, w) :
+    """Gradient of the loss function in logistic regression. """
+    """Activation function used here is the sigmoid """
+    return tx.T.dot(sigmoid(tx.dot(w)) - y)
+
+def compute_logistic_loss(y, tx, w) : 
+    """Loss is given by the negative log likelihood. """
+    return np.sum(np.log(1. + np.exp(tx.dot(w))) - y * tx.dot(w))
+
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 	"""Gradient descent algorithm.
@@ -97,8 +106,13 @@ def ridge_regression(y, tx, lambda_):
 	return w
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
-    raise NotImplementedError
-
+    """Logistic regression using stochastic gradient descent """
+    w = initial_w
+    for n_iter in range(max_iters) : 
+        grad = compute_logistic_gradient(y, tx, w)
+        loss = compute_logistic_loss(y, tx, w)
+        w = w - gamma * grad       
+    return w, loss 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """
@@ -114,5 +128,10 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             w: the optimized weights vector for this model
             loss: the final optimized logistic loss
         """
-    raise NotImplementedError
+    w = initial_w
+    for i in range(max_iters):
+        gradient = compute_logistic_gradient(y, tx, w) + 2 * lambda_ * w
+        loss = compute_logistic_loss(y, tx, w) + (lambda_ / 2) * w.T.dot(w)
+        w = w - gamma * gradient
+    return w, loss
 

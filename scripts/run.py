@@ -24,6 +24,7 @@ print(loss)
 y_pred = predict_labels(w, poly_basisTest)
 print("predicted ", str((y_pred==-1).sum()), "-1s and ", str((y_pred==1).sum()), "1s")
 create_csv_submission(ids_test, y_pred, "least_squares.csv")
+
 """ cross validation
 k_fold = 10
 #gamma = [0.1, 0.6, 0.01, 0.001]
@@ -68,26 +69,17 @@ print(best_lambda)
 #print("Min test accuracy: %f" % np.min(accs_test))
 #print("Max test accuracy: %f" % np.max(accs_test))
 #tX, tX_test= preprocessing(tX, tX_test)
-tX, _ = replace_empty(tX)
-tX_test, _ = replace_empty(tX_test)
 
-w, loss = reg_logistic_regression(y, tX, 0.01, None, 1000, 0.7)
-print(loss)
-y_pred = predict_labels(w, tX_test)
+#tX, _ = replace_empty(tX)
+#tX_test, _ = replace_empty(tX_test)
+#poly_basis = build_poly(tX, degree)
+#print("building poly")
+#poly_basisTest = build_poly(tX_test, 2)
+#print("building poly")
+y_log = log_reg_labels(y)
+w, loss = reg_logistic_regression(y_log, poly_basis, 0.01, None, 1000, 0.7)
+y_pred, _ = predict_labels_log_regression(y_test, w, poly_basisTest)
+#print(loss)
+#y_pred = predict_labels(w, tX_test)
 print("predicted ", str((y_pred==-1).sum()), "-1s and ", str((y_pred==1).sum()), "1s")
 create_csv_submission(ids_test, y_pred, "reg_log_reg.csv")
-# 0.665	0.363 for 
-# 0.724	0.641 reg logistic preprocessing and 0.01, 0.7 and 100
-# 0.770	0.625 least squares no preprocessing 
-# 0.774	0.632 least squares preprocessing
-# 0.2952679109171201
-# 0.29526791091712734 removing the cols to remove
-# 0.29526791091712734
-# 0.2952679109171201
-# 0.2952679109171201
-# 0.2952679109171201
-# 0.2952679109171228 also normalization
-# 0.2952679109171201
-# 0.2951405937065225
-# 0.2951405937065295
-# 0.2944385857259786 now

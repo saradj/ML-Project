@@ -29,7 +29,7 @@ def get_mse_loss(y, tx, w):
 
 def sigmoid(x):
     """Computes the sigmoid of x."""
-    return 1.0 / (1 + np.exp(-x))
+    return np.exp(-np.logaddexp(0, -x))
 
 def compute_logistic_gradient(y, tx, w) :
     """Gradient of the loss function in logistic regression. """
@@ -38,8 +38,8 @@ def compute_logistic_gradient(y, tx, w) :
 
 def compute_logistic_loss(y, tx, w) : 
     """Loss is given by the negative log likelihood. """
-    return np.sum(np.log(1. + np.exp(tx.dot(w))) - y * tx.dot(w))
-
+    predictions = tx.dot(w)
+    return np.sum(np.logaddexp(0, predictions)) - y.T.dot(predictions)
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 	"""Gradient descent algorithm.
@@ -52,7 +52,6 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 	Returns: 
 		w: optimized weights.
 		loss: final loss.
-	
 	"""
 	w = initial_w
 	loss = 0
@@ -128,10 +127,17 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             w: the optimized weights vector for this model
             loss: the final optimized logistic loss
         """
+
     w =  np.zeros(tx.shape[1]) if initial_w == None else initial_w
     for _ in range(max_iters):
         gradient = compute_logistic_gradient(y, tx, w) + 2 * lambda_ * w # todo 
         loss = compute_logistic_loss(y, tx, w) + (lambda_ / 2) * w.T.dot(w)
         w = w - gamma * gradient
+    print("loss for reg log ")
+    print(loss)
     return w, loss
+
+#0.2944385857259786 now
+#0.2944385857259821
+
 

@@ -128,9 +128,9 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             w: the optimized weights vector for this model
             loss: the final optimized logistic loss
         """
-    w = initial_w
-    for i in range(max_iters):
-        gradient = compute_logistic_gradient(y, tx, w) + 2 * lambda_ * w
+    w =  np.zeros(tx.shape[1]) if initial_w == None else initial_w
+    for _ in range(max_iters):
+        gradient = compute_logistic_gradient(y, tx, w) + 2 * lambda_ * w # todo 
         loss = compute_logistic_loss(y, tx, w) + (lambda_ / 2) * w.T.dot(w)
         w = w - gamma * gradient
     return w, loss

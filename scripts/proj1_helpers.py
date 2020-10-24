@@ -2,7 +2,6 @@
 """some helper functions for project 1."""
 import csv
 import numpy as np
-from numpy.lib.scimath import log
 
 
 def load_csv_data(data_path, sub_sample=False):
@@ -32,14 +31,6 @@ def predict_labels(weights, data):
     y_pred[np.where(y_pred > 0)] = 1
     
     return y_pred
-
-def predict_labels_log_regression(y, weights, data):
-    y_pred = np.dot(data, weights)
-    y_pred[np.where(y_pred <= 0.5)] = -1
-    y_pred[np.where(y_pred > 0.5)] = 1
-    correct_percentage = np.sum(y_pred == y) / float(len(y_pred))
-    print('Percentage of correct predictions is: %', correct_percentage * 100)
-    return y_pred, correct_percentage
 
 def compute_accuracy(y_pred, y):
     """Computes accuracy"""
@@ -114,6 +105,8 @@ def replace_empty(tx):
             tx[index,i] = median                #replace the outliers with median in that column
     return tx, empty_cols
 
+
+
 def standardize(x, mean_x=None, std_x=None):
     """ standardize the dataset by subtracting the mean and deviding by std """
     if mean_x is None:
@@ -165,7 +158,3 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         end_index = min((batch_num + 1) * batch_size, data_size)
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
-
-def log_reg_labels(y):
-    y[y == -1] = 0
-    return y

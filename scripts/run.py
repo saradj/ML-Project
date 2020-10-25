@@ -1,85 +1,58 @@
-# Useful starting lines
 import numpy as np
+import matplotlib.pyplot as plt
 from proj1_helpers import *
-from cross_validation import *
 from implementations import *
 
-# Define seed for train/test random splitting
-seed = 10
+DATA_TRAIN_PATH = 'train.csv' # train data path  
+y, raw_tX, ids = load_csv_data(DATA_TRAIN_PATH)
+y = np.array(y)
+raw_tX, cols = replace_empty(raw_tX)
 
-DATA_TRAIN_PATH = 'train.csv' 
-DATA_TEST_PATH = 'test.csv' 
-
-y_test, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
-y, tX, ids = load_csv_data(DATA_TRAIN_PATH)
+jets = [0, 1, 2, 3]
 degree = 2
-tX, tX_test = preprocessing(tX, tX_test)
-poly_basis = build_poly(tX, degree)
-print("building poly")
-poly_basisTest = build_poly(tX_test, 2)
-print("building poly")
+lambda_ = 0.000774263682681127 # optimal value found by cross validation
+jet_idxs = [None] * len(jets)
+data = [None] * len(jets)
+y_ = [None] * len(jets)
+split_ids = [None] * len(jets)
+tX_ = [None] * len(jets)
+weights_ =[None] * len(jets)
+loss_ = [None] * len(jets)
+#------------------------------------------------TRAINING------------------------------------------------
+for jet_nb in jets:
+    jet_idxs[jet_nb], y_[jet_nb], data[jet_nb], split_ids[jet_nb] = partition(y, raw_tX, ids, jet_nb)
+    tX_[jet_nb] = preprocessing(data[jet_nb])
+    tX_[jet_nb] = build_poly(tX_[jet_nb], degree)
+    weights_[jet_nb] = ridge_regression(y_[jet_nb], tX_[jet_nb], lambda_)
+    loss_[jet_nb] = compute_loss(y_[jet_nb], tX_[jet_nb], weights_[jet_nb])
+    print(loss_[jet_nb])
 
-w, loss = least_squares(y, poly_basis)
-print(loss)
-y_pred = predict_labels(w, poly_basisTest)
-print("predicted ", str((y_pred==-1).sum()), "-1s and ", str((y_pred==1).sum()), "1s")
-create_csv_submission(ids_test, y_pred, "least_squares.csv")
 
-""" cross validation
-k_fold = 10
-#gamma = [0.1, 0.6, 0.01, 0.001]
-#lambda_ = [0.000001, 0.04, 0.01, 0.00001, 0.001]
-gamma = [ 0.6, 0.7, 0.8, 0.9, 0.06]
-lambda_ = [0.000001, 0.01, 0.00001, 0.001]
-max_iters = 1000 # try with less iterations maybe 
-from collections import defaultdict
+DATA_TEST_PATH = 'test.csv' # test data path
+y_test, x_test, ids_test = load_csv_data(DATA_TEST_PATH)
+x_test,_ = replace_empty(x_test)
+y_pred_ = [None] * len(jets)
 
-# Split data in k-fold
-k_indices = k_indices(y, k_fold, seed)
+#------------------------------------------------PREDICTING-----------------------------------------------
+for jet_nb in jets:
+    jet_idxs[jet_nb], y_[jet_nb], data[jet_nb], split_ids[jet_nb] = partition(y_test, x_test, ids_test, jet_nb)
+    tX_[jet_nb] = preprocessing(data[jet_nb])
+    tX_[jet_nb] = build_poly(tX_[jet_nb], degree)
+    y_pred_[jet_nb] = predict_labels(weights_[jet_nb], tX_[jet_nb])
 
-best_acc_test = {}
-best_acc_train = {}
-best_g = {}
-best_lambda = {}
-for k in range(k_fold):
-    best_acc_train[k] = 0
-    best_acc_test[k] = 0
-    
-    for g in gamma:
-        for l in lambda_:
-            acc_train, acc_test= cross_validation(y, tX, k_indices, k, reg_logistic_regression, lambda_=l, initial_w=None, max_iters=max_iters, gamma=g)
-            if(acc_train>best_acc_train[k]):
-                best_acc_train[k] = acc_train
-            if(acc_test>best_acc_test[k]):
-                best_acc_test[k] = acc_test
-                best_lambda[k] = l
-                best_g[k] = g
+ids_all = []
+y_pred_all = []
+#------------------------------------------------MERGING-----------------------------------------------
+for id in split_ids:
+    ids_all =  np.concatenate((ids_all, id))
+for y in y_pred_:
+    y_pred_all = np.concatenate((y_pred_all, y))
 
-            print("%f %f %d - Training accuracy: %f / Test accuracy : %f" % (l, g,k,acc_train, acc_test))
-print(best_acc_train)
-print(best_acc_test)
-print(best_g)
-print(best_lambda)
-"""
+sorted_indx = np.argsort(ids_all)
 
-#cross_validation_visualization([0,1], best_acc_train, best_acc_test)
+OUTPUT_PATH = 'ridge.csv' 
+ids_all = ids_all[sorted_indx]
+y_pred_all = y_pred_all[sorted_indx]
 
-#print("\nAverage test accuracy: %f" % np.mean(accs_test))
-#print("Variance test accuracy: %f" % np.var(accs_test))
-#print("Min test accuracy: %f" % np.min(accs_test))
-#print("Max test accuracy: %f" % np.max(accs_test))
-#tX, tX_test= preprocessing(tX, tX_test)
 
-#tX, _ = replace_empty(tX)
-#tX_test, _ = replace_empty(tX_test)
-#poly_basis = build_poly(tX, degree)
-#print("building poly")
-#poly_basisTest = build_poly(tX_test, 2)
-#print("building poly")
-y_log = log_reg_labels(y)
-w, loss = reg_logistic_regression(y_log, poly_basis, 0.01, None, 1000, 0.7)
-y_pred, _ = predict_labels_log_regression(y_test, w, poly_basisTest)
-#print(loss)
-#y_pred = predict_labels(w, tX_test)
-print("predicted ", str((y_pred==-1).sum()), "-1s and ", str((y_pred==1).sum()), "1s")
-create_csv_submission(ids_test, y_pred, "reg_log_reg.csv")
+create_csv_submission(ids_all, y_pred_all, OUTPUT_PATH)

@@ -2,7 +2,6 @@
 """some helper functions for project 1."""
 import csv
 import numpy as np
-from implementations import *
 
 def load_csv_data(data_path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
@@ -30,10 +29,7 @@ def partition(y, data, ids, jet):
     for r,row in enumerate(data):
         if row[jet_col]==jet:
             jet_indx.append(r)
-        
-    y_i, data_i, ids_i = y[jet_indx], data[jet_indx], ids[jet_indx]
-    print(len(jet_indx))
-   
+    y_i, data_i, ids_i = y[jet_indx], data[jet_indx], ids[jet_indx]   
     return jet_indx, y_i, data_i, ids_i
 
 def remove_zero_var(data):
@@ -80,36 +76,6 @@ def build_poly(x, degree):
 
     return basis
 
-def preprocessing(x_train, x_test):
-    """
-    Replace all the missing values with the median and stack the log transform of the positive columns
-    """
-    # Impute missing data
-    #x_train = x_train[:, ~np.all(x_train[1:] == x_train[:-1], axis=0)]
-    #x_test = x_test[:, ~np.all(x_test[1:] == x_test[:-1], axis=0)]
-
-    x_train,cols = replace_empty(x_train)
-    x_test,cols_test = replace_empty(x_test)
-
-    positive_val_cols = [0, 1, 2, 3, 5, 7,8, 9, 10, 13, 16, 19, 21, 23, 26, 29]
-
-    # Apply log transform to the data x=>log(1+x)
-    x_train_log = np.log(1 + x_train[:, positive_val_cols])
-    #x_train = np.delete(x_train, positive_val_cols, 1)
-    x_train = np.hstack((x_train, x_train_log))
-
-    x_test_log = np.log(1 + x_test[:, positive_val_cols])
-    #x_test = np.delete(x_test, positive_val_cols, 1)
-    x_test = np.hstack((x_test, x_test_log))
-    #x_train = np.delete(x_train,cols, axis=1)  
-    #x_test = np.delete(x_test,cols_test, axis=1)  
-
-    x_train, mean_x_train, std_x_train = standardize(x_train)
-    x_test, mean_x_test, std_x_test = standardize(x_test, mean_x_train, std_x_train)
-    #x_train = normalize(x_train)
-    #x_test = normalize(x_test)
-
-    return x_train, x_test
 
 def normalize(x):
     """Standardize the original data set."""
@@ -142,7 +108,6 @@ def standardize(x, mean_x=None, std_x=None):
     x = x - mean_x
     if std_x is None:
         std_x = np.std(x, axis=0)
-    #x = x - mean_x
     x[:, std_x > 0] = x[:, std_x > 0] / std_x[std_x > 0]
 
     return x, mean_x, std_x
@@ -196,24 +161,19 @@ def build_poly(x, degree):
 
     return basis
 
-def preprocessing(x_train):#, x_test):
+def preprocessing(x_train):
     """
-    Replace all the missing values with the median and stack the log transform of the positive columns
+    Replace all the missing values with the median and stack the log, sqrt, sin, cos and cross
+    transform of the columns 
     """
-    # Impute missing data
+
+    # Remove colinear columns
     #x_train = x_train[:, ~np.all(x_train[1:] == x_train[:-1], axis=0)]
-    #x_test = x_test[:, ~np.all(x_test[1:] == x_test[:-1], axis=0)]
 
     x_train, cols = replace_empty(x_train)
-    #x_train = remove_zero_var(x_train)
-    #x_test,cols_test = replace_empty(x_test)
-    
-    positive_val_cols = [] #[0, 1, 2, 3, 5, 7,8, 9, 10, 13, 16, 19, 21, 23, 26, 29]
-    for i,col in enumerate(x_train.T):
-        if (col>=0).all():
-            positive_val_cols.append(i)
 
-     #x_train_poly =  build_poly(x_train, degree)
+    positive_val_cols = np.all(x_train >= 0, axis=0) # only use the positive columns for the log and sqrt transform
+
     # Apply log transform to the data x=>log(1+x)
     x_train_log = np.log(1 + x_train[:, positive_val_cols])
     x_train_sqrt = np.sqrt(x_train[:, positive_val_cols])
@@ -228,27 +188,16 @@ def preprocessing(x_train):#, x_test):
                 x_train_cross.append(x_train[:,i]*x_train[:,j])
              
     x_train_cross = np.array(x_train_cross).T           
-    #x_train = np.delete(x_train, positive_val_cols, 1)
     x_train = np.hstack((x_train, x_train_log))
     x_train = np.hstack((x_train, x_train_sqrt))
     x_train = np.hstack((x_train, x_train_sin))
     x_train = np.hstack((x_train, x_train_cos))
     x_train = np.hstack((x_train, x_train_cross))
-    #x_train = np.hstack((x_train, x_train_poly))
-    
-    #x_test_log = np.log(1 + x_test[:, positive_val_cols])
-    #x_test = np.delete(x_test, positive_val_cols, 1)
-    #x_test = np.hstack((x_test, x_test_log))
-    #x_train = np.delete(x_train,cols, axis=1)  
-    #x_test = np.delete(x_test,cols_test, axis=1)  
 
     x_train, mean_x_train, std_x_train = standardize(x_train)
-    #x_train = remove_outliers(x_train)
-    #x_test, mean_x_test, std_x_test = standardize(x_test, mean_x_train, std_x_train)
+    #x_train = remove_outliers(x_train) 
     #x_train = normalize(x_train)
-    #x_test = normalize(x_test)
-
-    return x_train#, x_test
+    return x_train
 
 def remove_outliers(tX):
     clean_data = []
@@ -299,7 +248,6 @@ def standardize(x, mean_x=None, std_x=None):
     x = x - mean_x
     if std_x is None:
         std_x = np.std(x, axis=0)
-    #x = x - mean_x
     x[:, std_x > 0] = x[:, std_x > 0] / std_x[std_x > 0]
 
     return x, mean_x, std_x
@@ -394,3 +342,16 @@ def ridge_reg_cross_validation(y, x, k_indices, k, lambda_, degree):
     #loss_te = compute_rmse(y_test, x_test_d, w)  
     return loss_tr, loss_te
 
+
+def log_reg_labels(y):
+    y[y == -1] = 0
+    return y
+
+def predict_labels_log_regression(y, weights, data):
+    y[y == 0] = -1
+    y_pred = np.dot(data, weights)
+    y_pred[np.where(y_pred <= 0.5)] = -1
+    y_pred[np.where(y_pred > 0.5)] = 1
+    correct_percentage = np.sum(y_pred == y) / float(len(y_pred))
+    print('Percentage of correct predictions is: %', correct_percentage * 100)
+    return y_pred

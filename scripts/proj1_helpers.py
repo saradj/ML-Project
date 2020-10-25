@@ -76,7 +76,6 @@ def build_poly(x, degree):
 
     return basis
 
-
 def normalize(x):
     """Standardize the original data set."""
     min_x = np.min(x, axis=0)
@@ -316,32 +315,6 @@ def compute_loss(y, tx, w):
     loss= 1/2 * np.mean(err ** 2)
     #print(loss)
     return loss
-
-def ridge_reg_cross_validation(y, x, k_indices, k, lambda_, degree):
-    """return the loss of ridge regression."""
-    l_test = k_indices[k]
-    l_train =  k_indices[~(np.arange(k_indices.shape[0])==k)] 
-    l_train = l_train.reshape(-1)
-    x_test = x[l_test]
-    y_test = y[l_test]
-    x_train = x[l_train] 
-    y_train = y[l_train] 
-    
-    #print(x_train.shape)
-    #x_train_d = build_poly(x_train, degree)
-    #x_test_d = build_poly(x_test, degree)
-   
-    #print(x_train_d.shape)
-  
-    w, mse_loss = ridge_regression(y_train, x_train, lambda_)
-    #print(w.shape)
-    
-    loss_tr = compute_loss(y_train, x_train, w)
-    loss_te = compute_loss(y_test, x_test, w)
-    #loss_tr = compute_rmse(y_train, x_train_d, w) 
-    #loss_te = compute_rmse(y_test, x_test_d, w)  
-    return loss_tr, loss_te
-
 
 def log_reg_labels(y):
     y[y == -1] = 0
